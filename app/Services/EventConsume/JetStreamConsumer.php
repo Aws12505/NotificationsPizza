@@ -36,6 +36,8 @@ class JetStreamConsumer
     private const SUBJECT_ALLOW_PREFIXES = [
         'auth.v1.',
         'auth.testing.v1.',
+        'notifications.v1.',
+        'notifications.testing.v1.'
     ];
 
     private ?Client $client = null;
