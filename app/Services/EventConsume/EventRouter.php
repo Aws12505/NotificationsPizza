@@ -42,7 +42,10 @@ class EventRouter
             "{$notificationsPrefix}.notification.send" => NotificationSendHandler::class,
         ];
     }
-
+    public function getResolvedMap(): array
+    {
+        return $this->map;
+    }
     public function resolve(string $subject): string
     {
         if (!isset($this->map[$subject])) {
