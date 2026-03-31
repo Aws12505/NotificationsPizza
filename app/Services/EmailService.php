@@ -6,8 +6,8 @@ use App\Jobs\SendEmailJob;
 
 class EmailService
 {
-    public function send(string $template, string $to, array $data): void
+    public function send(string $template, string $subject, string $to, array $data): void
     {
-        dispatch(new SendEmailJob($template, $to, $data));
+        dispatch(new SendEmailJob($template, $subject, $to, $data));
     }
 }

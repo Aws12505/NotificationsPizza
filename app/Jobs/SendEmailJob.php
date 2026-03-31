@@ -13,6 +13,7 @@ class SendEmailJob implements ShouldQueue
 
     public function __construct(
         public string $template,
+        public string $subject,
         public string $to,
         public array $data
     ) {
@@ -21,6 +22,6 @@ class SendEmailJob implements ShouldQueue
     public function handle(): void
     {
         Mail::to($this->to)
-            ->send(new GenericMailable($this->template, $this->data));
+            ->send(new GenericMailable($this->template, $this->subject, $this->data));
     }
 }
