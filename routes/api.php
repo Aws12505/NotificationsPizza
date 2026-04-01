@@ -3,7 +3,7 @@
 use App\Http\Controllers\AnnouncementController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->prefix('announcements')->group(function () {
+Route::middleware('auth.token.store')->prefix('announcements')->group(function () {
     Route::get('/', [AnnouncementController::class, 'index']);
     Route::post('/', [AnnouncementController::class, 'store']);
     Route::get('/visible', [AnnouncementController::class, 'visible']);
