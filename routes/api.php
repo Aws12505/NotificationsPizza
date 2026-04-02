@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AnnouncementController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\NotificationController;
 
 Route::middleware('auth.token.store')->prefix('announcements')->group(function () {
     Route::get('/', [AnnouncementController::class, 'index']);
@@ -12,4 +13,11 @@ Route::middleware('auth.token.store')->prefix('announcements')->group(function (
     Route::get('/{announcement}', [AnnouncementController::class, 'show']);
     Route::put('/{announcement}', [AnnouncementController::class, 'update']);
     Route::delete('/{announcement}', [AnnouncementController::class, 'destroy']);
+});
+
+Route::middleware('auth.token.store')->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread', [NotificationController::class, 'unread']);
+    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
 });
