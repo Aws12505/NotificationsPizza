@@ -97,7 +97,7 @@ class AnnouncementService
                     ->whereNotNull('seen_at');
             })
             ->orderByDesc('is_pinned')
-            ->orderByAsc('created_at')
+            ->orderBy('created_at', 'asc') // fix here
             ->get();
     }
 
