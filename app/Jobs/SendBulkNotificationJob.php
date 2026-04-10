@@ -18,17 +18,13 @@ class SendBulkNotificationJob implements ShouldQueue
         public array $channels,
         public array $payload,
         public ?array $userIds = null,
-        public bool $onlyActiveUsers = true
+
     ) {
     }
 
     public function handle(NotificationService $notificationService): void
     {
         $query = User::query()->select('id');
-
-        if ($this->onlyActiveUsers) {
-            $query->where('is_active', true);
-        }
 
         if (is_array($this->userIds) && !empty($this->userIds)) {
             $query->whereIn('id', $this->userIds);
