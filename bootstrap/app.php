@@ -17,7 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withBroadcasting(__DIR__ . '/../routes/channels.php', [
-        'middleware' => ['web', 'auth.token.store'],
+        'prefix' => 'api',
+        'middleware' => ['api', 'auth.token.store'],
     ])
     ->withExceptions(function (Exceptions $exceptions): void {
         //
