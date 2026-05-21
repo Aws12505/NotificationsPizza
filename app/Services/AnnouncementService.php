@@ -39,18 +39,16 @@ class AnnouncementService
                 'ends_at' => $data['ends_at'] ?? null,
             ]);
 
-            DB::afterCommit(function () use ($announcement) {
-                dispatch(new SendBulkNotificationJob(
-                    channels: ['web'],
-                    payload: [
-                        'type' => 'announcement.created',
-                        'title' => $announcement->title,
-                        'body' => $announcement->body,
-                        'action_url' => "/announcements/{$announcement->id}",
-                        'announcement_id' => $announcement->id,
-                    ]
-                ));
-            });
+            dispatch(new SendBulkNotificationJob(
+                channels: ['web'],
+                payload: [
+                    'type' => 'announcement.created',
+                    'title' => $announcement->title,
+                    'body' => $announcement->body,
+                    'action_url' => "/announcements/{$announcement->id}",
+                    'announcement_id' => $announcement->id,
+                ]
+            ));
 
             return $announcement;
         });
@@ -72,18 +70,16 @@ class AnnouncementService
 
             $announcement->refresh();
 
-            DB::afterCommit(function () use ($announcement) {
-                dispatch(new SendBulkNotificationJob(
-                    channels: ['web'],
-                    payload: [
-                        'type' => 'announcement.updated',
-                        'title' => $announcement->title,
-                        'body' => $announcement->body,
-                        'action_url' => "/announcements/{$announcement->id}",
-                        'announcement_id' => $announcement->id,
-                    ]
-                ));
-            });
+            dispatch(new SendBulkNotificationJob(
+                channels: ['web'],
+                payload: [
+                    'type' => 'announcement.updated',
+                    'title' => $announcement->title,
+                    'body' => $announcement->body,
+                    'action_url' => "/announcements/{$announcement->id}",
+                    'announcement_id' => $announcement->id,
+                ]
+            ));
 
             return $announcement;
         });
