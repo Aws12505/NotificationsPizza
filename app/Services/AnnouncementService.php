@@ -96,6 +96,12 @@ class AnnouncementService
         $now = now();
 
         return Announcement::query()
+            ->with([
+                'userStates' => function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                        ->whereNotNull('seen_at');
+                }
+            ])
             ->where('is_active', true)
             ->where(function ($q) use ($now) {
                 $q->whereNull('starts_at')
@@ -107,7 +113,11 @@ class AnnouncementService
             })
             ->orderByDesc('is_pinned')
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->each(function (Announcement $announcement): void {
+                $announcement->setAttribute('seen', $announcement->userStates->isNotEmpty());
+                $announcement->makeHidden('userStates');
+            });
     }
 
     public function getUnseenForUser(int $userId): Collection
@@ -115,6 +125,12 @@ class AnnouncementService
         $now = now();
 
         return Announcement::query()
+            ->with([
+                'userStates' => function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                        ->whereNotNull('seen_at');
+                }
+            ])
             ->where('is_active', true)
             ->where(function ($q) use ($now) {
                 $q->whereNull('starts_at')
@@ -130,7 +146,11 @@ class AnnouncementService
             })
             ->orderByDesc('is_pinned')
             ->orderBy('created_at', 'asc') // fix here
-            ->get();
+            ->get()
+            ->each(function (Announcement $announcement): void {
+                $announcement->setAttribute('seen', $announcement->userStates->isNotEmpty());
+                $announcement->makeHidden('userStates');
+            });
     }
 
     public function markSeen(int $userId, int $announcementId): void
