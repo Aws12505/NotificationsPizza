@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->string('type', 50)->default('general')->index();
             $table->string('title', 255);
             $table->longText('body');
-            $table->text('version')->nullable()->index();
+            $table->string('version', 50)->nullable()->index();
             $table->boolean('is_active')->default(true)->index();
             $table->boolean('is_pinned')->default(false)->index();
             $table->timestamp('starts_at')->nullable()->index();

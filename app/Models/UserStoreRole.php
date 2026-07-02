@@ -5,26 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UserDevice extends Model
+class UserStoreRole extends Model
 {
+    protected $table = 'user_store_roles';
+
+    public $incrementing = false;
+    protected $keyType = 'int';
+
     protected $fillable = [
         'id',
         'user_id',
-        'device_id',
-        'platform',
-        'model',
-        'os_version',
-        'app_version',
-        'fcm_token',
-        'last_seen_at',
+        'store_id',
+        'role_name',
+        'active',
+        'meta',
     ];
 
     protected $casts = [
-        'last_seen_at' => 'datetime',
+        'active' => 'boolean',
+        'meta' => 'array',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
 }

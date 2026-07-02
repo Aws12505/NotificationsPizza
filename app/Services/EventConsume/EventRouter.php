@@ -4,10 +4,17 @@ namespace App\Services\EventConsume;
 
 use App\Services\EventConsume\Handlers\EmailSendHandler;
 use App\Services\EventConsume\Handlers\NotificationSendHandler;
+use App\Services\EventConsume\Handlers\RoleEmailSendHandler;
+use App\Services\EventConsume\Handlers\RoleNotificationSendHandler;
 use App\Services\EventConsume\Handlers\UserCreatedHandler;
 use App\Services\EventConsume\Handlers\UserDeletedHandler;
 use App\Services\EventConsume\Handlers\UserDeviceUpsertedHandler;
 use App\Services\EventConsume\Handlers\UserUpdatedHandler;
+use App\Services\EventConsume\Handlers\UserStoreRoleAssignedHandler;
+use App\Services\EventConsume\Handlers\UserStoreRoleRemovedHandler;
+use App\Services\EventConsume\Handlers\UserStoreRoleToggledHandler;
+use App\Services\EventConsume\Handlers\UserStoreRoleBulkAssignedHandler;
+
 use Exception;
 
 class EventRouter
@@ -34,15 +41,28 @@ class EventRouter
             "{$authPrefix}.user.updated" => UserUpdatedHandler::class,
             "{$authPrefix}.user.deleted" => UserDeletedHandler::class,
 
+            // ASSIGNMENTS => replicate qa_auditor into user_store_roles
+            "{$authPrefix}.assignment.user_role_store.assigned" => UserStoreRoleAssignedHandler::class,
+            "{$authPrefix}.assignment.user_role_store.removed" => UserStoreRoleRemovedHandler::class,
+            "{$authPrefix}.assignment.user_role_store.toggled" => UserStoreRoleToggledHandler::class,
+            "{$authPrefix}.assignment.user_role_store.bulk_assigned" => UserStoreRoleBulkAssignedHandler::class,
+
             // DEVICES
             "{$authPrefix}.user.device.upserted" => UserDeviceUpsertedHandler::class,
 
             // COMMUNICATION
             "{$notificationsPrefix}.email.send" => EmailSendHandler::class,
             "{$notificationsPrefix}.notification.send" => NotificationSendHandler::class,
+
+            // COMMUNICATION — role/store targeted (resolves recipients from user_store_roles)
+            "{$notificationsPrefix}.notification.role.send" => RoleNotificationSendHandler::class,
+            "{$notificationsPrefix}.email.role.send" => RoleEmailSendHandler::class,
         ];
     }
-
+    public function getResolvedMap(): array
+    {
+        return $this->map;
+    }
     public function resolve(string $subject): string
     {
         if (!isset($this->map[$subject])) {

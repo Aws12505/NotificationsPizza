@@ -15,10 +15,15 @@ class EmailSendHandler implements EventHandlerInterface
     public function handle(array $event): void
     {
         $template = (string) data_get($event, 'data.template', '');
+        $subject = (string) data_get($event, 'data.subject', '');
         $users = data_get($event, 'data.users', []);
 
         if ($template === '') {
             throw new \Exception('EmailSendHandler: missing data.template');
+        }
+
+        if ($subject === '') {
+            throw new \Exception('EmailSendHandler: missing data.subject');
         }
 
         if (!is_array($users) || empty($users)) {
@@ -39,6 +44,7 @@ class EmailSendHandler implements EventHandlerInterface
 
             $this->service->send(
                 template: $template,
+                subject: $subject,
                 to: $to,
                 data: $data
             );

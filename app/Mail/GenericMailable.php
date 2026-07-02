@@ -8,13 +8,15 @@ class GenericMailable extends Mailable
 {
     public function __construct(
         public string $template,
+        public string $subjectLine,
         public array $data
     ) {
     }
 
     public function build()
     {
-        return $this->view("emails.templates.{$this->template}")
+        return $this->subject($this->subjectLine)
+            ->view("emails.templates.{$this->template}")
             ->with($this->data);
     }
 }

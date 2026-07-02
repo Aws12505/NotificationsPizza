@@ -7,9 +7,16 @@ use App\Models\AnnouncementUserState;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use App\Services\NotificationService;
+use App\Jobs\SendBulkNotificationJob;
 
 class AnnouncementService
 {
+
+    public function __construct(
+        private readonly NotificationService $notificationService
+    ) {
+    }
     public function paginateForAdmin(int $perPage = 15): LengthAwarePaginator
     {
         return Announcement::query()
@@ -21,7 +28,7 @@ class AnnouncementService
     public function create(array $data): Announcement
     {
         return DB::transaction(function () use ($data) {
-            return Announcement::query()->create([
+            $announcement = Announcement::query()->create([
                 'type' => $data['type'] ?? 'general',
                 'title' => $data['title'],
                 'body' => $data['body'],
@@ -31,6 +38,19 @@ class AnnouncementService
                 'starts_at' => $data['starts_at'] ?? null,
                 'ends_at' => $data['ends_at'] ?? null,
             ]);
+
+            dispatch(new SendBulkNotificationJob(
+                channels: ['web'],
+                payload: [
+                    'type' => 'announcement.created',
+                    'title' => $announcement->title,
+                    'body' => $announcement->body,
+                    'action_url' => "/announcements/{$announcement->id}",
+                    'announcement_id' => $announcement->id,
+                ]
+            ));
+
+            return $announcement;
         });
     }
 
@@ -50,9 +70,21 @@ class AnnouncementService
 
             $announcement->refresh();
 
+            dispatch(new SendBulkNotificationJob(
+                channels: ['web'],
+                payload: [
+                    'type' => 'announcement.updated',
+                    'title' => $announcement->title,
+                    'body' => $announcement->body,
+                    'action_url' => "/announcements/{$announcement->id}",
+                    'announcement_id' => $announcement->id,
+                ]
+            ));
+
             return $announcement;
         });
     }
+
 
     public function delete(Announcement $announcement): void
     {
@@ -64,6 +96,12 @@ class AnnouncementService
         $now = now();
 
         return Announcement::query()
+            ->with([
+                'userStates' => function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                        ->whereNotNull('seen_at');
+                }
+            ])
             ->where('is_active', true)
             ->where(function ($q) use ($now) {
                 $q->whereNull('starts_at')
@@ -75,7 +113,11 @@ class AnnouncementService
             })
             ->orderByDesc('is_pinned')
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->each(function (Announcement $announcement): void {
+                $announcement->setAttribute('seen', $announcement->userStates->isNotEmpty());
+                $announcement->makeHidden('userStates');
+            });
     }
 
     public function getUnseenForUser(int $userId): Collection
@@ -83,6 +125,12 @@ class AnnouncementService
         $now = now();
 
         return Announcement::query()
+            ->with([
+                'userStates' => function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                        ->whereNotNull('seen_at');
+                }
+            ])
             ->where('is_active', true)
             ->where(function ($q) use ($now) {
                 $q->whereNull('starts_at')
@@ -97,8 +145,12 @@ class AnnouncementService
                     ->whereNotNull('seen_at');
             })
             ->orderByDesc('is_pinned')
-            ->orderByAsc('created_at')
-            ->get();
+            ->orderBy('created_at', 'asc') // fix here
+            ->get()
+            ->each(function (Announcement $announcement): void {
+                $announcement->setAttribute('seen', $announcement->userStates->isNotEmpty());
+                $announcement->makeHidden('userStates');
+            });
     }
 
     public function markSeen(int $userId, int $announcementId): void
